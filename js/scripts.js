@@ -1,8 +1,12 @@
 /**
  * Template plugin elements
  */
-//searchBar
+
+//search Div
 const searchContainer = document.querySelector(".search-container")
+
+//search bar
+let searchBar = document.querySelector("form input[type='search']")
 
 //gallery
 const gallery = document.getElementById("gallery")
@@ -13,14 +17,43 @@ const body = document.querySelector("body")
 //container API data container
 let cardContainer = []
 
+//employee card selected
+let name = "";
+
+//Convert the object to a list to iterate through the object using a the list
+let cardContainterKeys = []
+
 /**
  * Constants
  */
+
 const DATA = {
     STARTUP_EMPLOYEES: 11,
-    APIURL: "https://randomuser.me/api/"
+    APIURL: "https://randomuser.me/api/?nat=us",
+    VALIDATORS: {
+        DOB_REGEX: /(\d{4})-(\d{2})-(\d{2}).*/img,
+        REGEXCLASS_ALL : /^card.+/im,
+        REGEX_TAG : /^DIV$/,
+        REGEXCLASS : /^card$/,
+        REGEX_SEARCH : /^[\w]+( [\w]*)?$/im,
+    },
+    NEXT: 1,
+    PREV: -1,
 }
 
+/**
+ * Helper Functions
+ */
+
+//Phone Number Formatter
+function numberFormat(text){
+    return text.replace(DATA.VALIDATORS.DOB_REGEX, '$2/$3/$1');
+}
+
+//Validates if the clicked item belongs to a card
+function cardValidator(e){
+    return DATA.VALIDATORS.REGEXCLASS_ALL.test(e.target.className);
+}
 
 
 /**
@@ -31,7 +64,6 @@ const search_Markup =
         <input type="search" id="search-input" class="search-input" placeholder="Search...">
         <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
     </form>`
-
 
 const gallery_Markup =
     `
@@ -79,8 +111,7 @@ const modal_btn_Markup =
  */
 
 //Append search markup to the search div
-searchContainer.insertAdjacentHTML("beforeend", search_Markup)
-
+searchContainer.insertAdjacentHTML("beforeend", search_Markup);
 
 //Extract image, first and last name, email and city or location.
 function createGalleryUsers(data){
@@ -107,27 +138,37 @@ function createGalleryUsers(data){
 
 function createModal(data){
     const name = data.name.first+" "+data.name.last;
-    const image = data.picture.thumbnail;
+    const image = data.picture.medium;
     const city = data.location.city;
     const state = data.location.state;
+    const postal = data.location.postcode;
     const email = data.email;
+    const cell = data.cell;
+    const address = data.location.street.number+" "+ data.location.street.name+", "+city+", "+state+" "+postal;
+    const birthday =  numberFormat(data.dob.date);
     let html =
         `
               <div class="modal-container">
                 <div class="modal">
                     <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
                     <div class="modal-info-container">
-                        <img class="modal-img" src="https://placehold.it/125x125" alt="profile picture">
+                        <img class="modal-img" src=${image} alt="profile picture">
                         <h3 id="name" class="modal-name cap">${name}</h3>
                         <p class="modal-text">${email}</p>
                         <p class="modal-text cap">${city}</p>
                         <hr>
-                        <p class="modal-text">${state}</p>
-                        <p class="modal-text">123 Portland Ave., Portland, OR 97204</p>
-                        <p class="modal-text">Birthday: 10/21/2015</p>
+                        <p class="modal-text">${cell}</p>
+                        <p class="modal-text">${address}</p>
+                        <p class="modal-text">Birthday: ${birthday}</p>
                     </div>
                 </div>
+               <div class="modal-btn-container">
+                <button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
+                <button type="button" id="modal-next" class="modal-next btn">Next</button>
+            </div>
+        </div>
     `
+    return html
 }
 
 /**
@@ -159,15 +200,18 @@ function fetchUserDecorator(url) {
         .then((message) => {
             const apiData = message['results'][0]
             startupEmployees += createGalleryUsers(apiData);
-            const key = apiData.name.first;
-            const unit = { key : apiData }
-            cardContainer.push(unit);
+            reqEmployeeData(apiData)
             return message;
         })
 };
 
-
-
+//Stores Request within an object, using a key for later retrieval
+function reqEmployeeData (data){
+    const key = data.name.first;
+    const unit = {[key] : data }
+    let newCardContainer = Object.assign(cardContainer, unit)
+    cardContainer = newCardContainer;
+}
 
 //Produce 12 employees
 async function startApp ()
@@ -175,31 +219,128 @@ async function startApp ()
     for (let i = 0; i <= DATA.STARTUP_EMPLOYEES; i++) {
         await fetchUserDecorator(DATA.APIURL)
     }
+    cardContainterKeys = Object.keys(cardContainer)
     gallery.insertAdjacentHTML("beforeend", startupEmployees)
 }
+/**
+ * CSS Modifications
+ */
+const searchCSSbg = () => {
+    const cards = document.querySelectorAll('.card');
+    for (ele of cards) {ele.style.backgroundColor = '#FFF8DC'};
+    body.style.backgroundColor = 'Purple'
+    gallery.style.backgroundColor = '#FFA07A';
 
+    document.querySelector('header h1').style.color = "#FFA07A"
+}
+const defaultCSSbg = () => {
+    const cards = document.querySelectorAll('.card');
+    for (ele of cards) {ele.style.backgroundColor = 'rgba(245, 245, 245, 0.9)'};
+    body.style.backgroundColor = 'rgba(235, 235, 235, 0.9)';
+    gallery.style.backgroundColor = 'rgba(235, 235, 235, 0.9)';
+    document.querySelector('header h1').style.color = "Black"
+
+}
 
 /**
  * EventListeners
  */
 
-gallery.addEventListener("click",  (e) => {
-    let card = e.target
-    const regexTag = /^DIV$/
-    const regexClass = /^card$/
-    let condition = true;
+function getActiveName(e) {
+        let card = e.target
+        let condition = true;
 
-    while (condition){
-        card = card.parentElement;
-        if(regexTag.test(card.tagName) && regexClass.test(card.className)) {
-            condition = false;
+        while (condition) {
+            card = card.parentElement;
+            if (DATA.VALIDATORS.REGEX_TAG.test(card.tagName) && DATA.VALIDATORS.REGEXCLASS.test(card.className)) {
+                condition = false;
+            }
+        }
+        console.log(`card : ${card.className}`)
+        return card.querySelector("h3").id
+}
+
+//event handler for clicking on employees
+function addModal(activeEle){
+        name = getActiveName(activeEle);
+        let test = cardContainer[name]
+        const html = createModal(test)
+        gallery.insertAdjacentHTML("beforeend", html)
+}
+
+//closes the modal
+const closeModal = () => {
+    const currModal = document.querySelector(".modal-container")
+    currModal.innerHTML = "";
+    currModal.remove()
+}
+
+//steps through the cards and displays the selected name
+const modalTraverse = (step) => {
+    let nextEmployee  = cardContainterKeys[cardContainterKeys.indexOf(name)+step]
+    let employeeData = cardContainer[nextEmployee]
+    name = nextEmployee;
+    const html = createModal(employeeData)
+    gallery.insertAdjacentHTML("beforeend", html)
+}
+
+function search(searchVal, data) {
+    let filterData = "";
+    searchCSSbg();
+
+    for (let ind = 0; ind < data.length; ind++) {
+        const currentName = data[ind]
+        const fullName = cardContainer[currentName].name.first+" "+cardContainer[currentName].name.last;
+
+
+        if (fullName.toLowerCase().includes(searchVal.toLowerCase())) {
+            filterData += createGalleryUsers(cardContainer[data[ind]])
         }
     }
-    const name = card.querySelector("h3").id
+    gallery.innerHTML = ""
+    gallery.insertAdjacentHTML("beforeend", filterData)
+    return filterData.length
+}
 
-})
+function searching() {
+    const searchInput = searchBar.value;
+    if (DATA.VALIDATORS.REGEX_SEARCH.test(searchInput) ) {
+        console.log("conside it true")
+        const pplFound = search(searchInput, cardContainterKeys)
+        if (pplFound === 0) {
+            gallery.innerHTML = "No Result Found"
+        }
+    } else {
+        defaultCSSbg()
+        console.log("HERRRRRE")
+        gallery.innerHTML = ""
+        gallery.insertAdjacentHTML("beforeend", startupEmployees)
+        defaultCSSbg()
+    }
+}
+
+function modalListener(){
+    return (e) =>{
+
+        if(cardValidator(e)){
+            addModal(e)
+        }
+        else if(e.target.className === "modal-close-btn" || e.target.parentElement.className === "modal-close-btn" ){
+            closeModal();
+        }
+        else if (e.target.id === "modal-next"){
+            closeModal();
+            modalTraverse(DATA.NEXT)
+        }
+        else if (e.target.id === "modal-prev"){
+            closeModal();
+            modalTraverse(DATA.PREV)
+        }
+    }
+}
 
 
-
+document.addEventListener("click", modalListener())
 
 startApp();
+searchBar.addEventListener("keyup", searching)
