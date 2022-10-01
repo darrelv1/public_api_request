@@ -5,9 +5,6 @@
 //search Div
 const searchContainer = document.querySelector(".search-container")
 
-//search bar
-let searchBar = document.querySelector("form input[type='search']")
-
 //gallery
 const gallery = document.getElementById("gallery")
 
@@ -112,6 +109,9 @@ const modal_btn_Markup =
 
 //Append search markup to the search div
 searchContainer.insertAdjacentHTML("beforeend", search_Markup);
+
+//search bar
+let searchBar = document.querySelector("form input[type='search']")
 
 //Extract image, first and last name, email and city or location.
 function createGalleryUsers(data){
@@ -284,6 +284,7 @@ const modalTraverse = (step) => {
     gallery.insertAdjacentHTML("beforeend", html)
 }
 
+//searches through the cardcontainer, and displays matches
 function search(searchVal, data) {
     let filterData = "";
     searchCSSbg();
@@ -291,7 +292,6 @@ function search(searchVal, data) {
     for (let ind = 0; ind < data.length; ind++) {
         const currentName = data[ind]
         const fullName = cardContainer[currentName].name.first+" "+cardContainer[currentName].name.last;
-
 
         if (fullName.toLowerCase().includes(searchVal.toLowerCase())) {
             filterData += createGalleryUsers(cardContainer[data[ind]])
@@ -302,17 +302,16 @@ function search(searchVal, data) {
     return filterData.length
 }
 
+//handles the an empty or an active search input field
 function searching() {
     const searchInput = searchBar.value;
     if (DATA.VALIDATORS.REGEX_SEARCH.test(searchInput) ) {
-        console.log("conside it true")
         const pplFound = search(searchInput, cardContainterKeys)
         if (pplFound === 0) {
             gallery.innerHTML = "No Result Found"
         }
     } else {
         defaultCSSbg()
-        console.log("HERRRRRE")
         gallery.innerHTML = ""
         gallery.insertAdjacentHTML("beforeend", startupEmployees)
         defaultCSSbg()
