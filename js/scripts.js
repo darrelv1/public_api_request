@@ -307,11 +307,14 @@ function modalListener(){
             closeModal();
             modalTraverse(DATA.PREV)
         }
+        else {
+            //Nothing happens
+        }
     }
 }
 
 
-document.addEventListener("click", modalListener())
+document.querySelector("body").addEventListener("click", modalListener())
 
 startApp();
 searchBar.addEventListener("keyup", searching)
