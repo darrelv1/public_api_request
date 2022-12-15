@@ -237,11 +237,17 @@ const closeModal = () => {
 
 //steps through the cards and displays the selected name
 const modalTraverse = (step) => {
-    let nextEmployee  = cardContainterKeys[cardContainterKeys.indexOf(name)+step]
-    let employeeData = cardContainer[nextEmployee]
-    name = nextEmployee;
-    const html = createModal(employeeData)
-    gallery.insertAdjacentHTML("beforeend", html)
+    const indexNext = cardContainterKeys.indexOf(name)+step
+    if ( 0 <=  indexNext && indexNext <= DATA.STARTUP_EMPLOYEES){
+        console.log("in traversal conditional");
+        let nextEmployee  = cardContainterKeys[indexNext]
+        let employeeData = cardContainer[nextEmployee]
+        name = nextEmployee;
+        const html = createModal(employeeData)
+        gallery.insertAdjacentHTML("beforeend", html)
+    } else {
+        console.log("it's the end of the line")
+    }
 }
 
 //searches through the cardcontainer, and displays matches
