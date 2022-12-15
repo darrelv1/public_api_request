@@ -217,7 +217,6 @@ function getActiveName(e) {
                 condition = false;
             }
         }
-        console.log(`card : ${card.className}`)
         return card.querySelector("h3").id
 }
 
@@ -240,7 +239,7 @@ const closeModal = () => {
 const modalTraverse = (step) => {
     const indexNext = cardContainterKeys.indexOf(name)+step
     if ( 0 <=  indexNext && indexNext <= (cardContainterKeys.length-1)){
-        console.log("in traversal conditional");
+        //console.log("in traversal conditional");
         let nextEmployee  = cardContainterKeys[indexNext]
         let employeeData = cardContainer[nextEmployee]
         name = nextEmployee;
@@ -263,7 +262,7 @@ function search(searchVal, data) {
             filterData += createGalleryUsers(cardContainer[data[ind]])
             //temporaryCardContainer
             tempKeys.push(cardContainer[currentName].name.first);
-            console.log(tempKeys)
+
 
         }
     }
