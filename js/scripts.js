@@ -25,8 +25,8 @@ let cardContainterKeys = []
  */
 
 const DATA = {
-    STARTUP_EMPLOYEES: 11,
-    APIURL: "https://randomuser.me/api/?nat=us",
+    STARTUP_EMPLOYEES: 12,
+    APIURL: "https://randomuser.me/api/?results=12&nat=us",
     VALIDATORS: {
         DOB_REGEX: /(\d{4})-(\d{2})-(\d{2}).*/img,
         REGEXCLASS_ALL : /^card.+/im,
@@ -158,9 +158,11 @@ let startupEmployees = "";
 function fetchUserDecorator(url) {
     return fetchData(url)
         .then((message) => {
-            const apiData = message['results'][0]
-            startupEmployees += createGalleryUsers(apiData);
-            reqEmployeeData(apiData)
+            for (let i = 0; i < 12 ; i++) {
+                const apiData = message['results'][i]
+                startupEmployees += createGalleryUsers(apiData);
+                reqEmployeeData(apiData)
+            }
             return message;
         })
 };
@@ -173,12 +175,11 @@ function reqEmployeeData (data){
     cardContainer = newCardContainer;
 }
 
-//Produce 12 employees
+//Fetches 12 employees
 async function startApp ()
 {
-    for (let i = 0; i <= DATA.STARTUP_EMPLOYEES; i++) {
         await fetchUserDecorator(DATA.APIURL)
-    }
+
     cardContainterKeys = Object.keys(cardContainer)
     gallery.insertAdjacentHTML("beforeend", startupEmployees)
 }
@@ -238,22 +239,21 @@ const closeModal = () => {
 //steps through the cards and displays the selected name
 const modalTraverse = (step) => {
     const indexNext = cardContainterKeys.indexOf(name)+step
-    if ( 0 <=  indexNext && indexNext <= DATA.STARTUP_EMPLOYEES){
+    if ( 0 <=  indexNext && indexNext <= (cardContainterKeys.length-1)){
         console.log("in traversal conditional");
         let nextEmployee  = cardContainterKeys[indexNext]
         let employeeData = cardContainer[nextEmployee]
         name = nextEmployee;
         const html = createModal(employeeData)
         gallery.insertAdjacentHTML("beforeend", html)
-    } else {
-        console.log("it's the end of the line")
     }
 }
-
-//searches through the cardcontainer, and displays matches
+//searches through the card container, and displays matches
 function search(searchVal, data) {
+
     let filterData = "";
     searchCSSbg();
+    let tempKeys = [];
 
     for (let ind = 0; ind < data.length; ind++) {
         const currentName = data[ind]
@@ -261,10 +261,16 @@ function search(searchVal, data) {
 
         if (fullName.toLowerCase().includes(searchVal.toLowerCase())) {
             filterData += createGalleryUsers(cardContainer[data[ind]])
+            //temporaryCardContainer
+            tempKeys.push(cardContainer[currentName].name.first);
+            console.log(tempKeys)
+
         }
     }
+
     gallery.innerHTML = ""
     gallery.insertAdjacentHTML("beforeend", filterData)
+    cardContainterKeys = tempKeys
     return filterData.length
 }
 
@@ -272,6 +278,7 @@ function search(searchVal, data) {
 function searching() {
     const searchInput = searchBar.value;
     if (DATA.VALIDATORS.REGEX_SEARCH.test(searchInput) ) {
+        cardContainterKeys = Object.keys(cardContainer);
         const pplFound = search(searchInput, cardContainterKeys)
         if (pplFound === 0) {
             gallery.innerHTML = "No Result Found"
@@ -283,7 +290,7 @@ function searching() {
         defaultCSSbg()
     }
 }
-
+//Actions all the modal interactions
 function modalListener(){
     return (e) =>{
 
