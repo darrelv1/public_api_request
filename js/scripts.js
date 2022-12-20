@@ -158,7 +158,7 @@ let startupEmployees = "";
 function fetchUserDecorator(url) {
     return fetchData(url)
         .then((message) => {
-            for (let i = 0; i < 12 ; i++) {
+            for (let i = 0; i < DATA.STARTUP_EMPLOYEES ; i++) {
                 const apiData = message['results'][i]
                 startupEmployees += createGalleryUsers(apiData);
                 reqEmployeeData(apiData)

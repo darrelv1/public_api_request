@@ -1,0 +1,4 @@
+CSS MODIFICATIONS:
+    When in search mode, the background changes color. The application is in search mode when a user enters any
+    character to the search bar. This modification is to hint to the use that they are in search mode and they may be
+    looking at a subset/filter listing of employees
